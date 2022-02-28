@@ -17,16 +17,21 @@ pipeline {
             git 'https://github.com/sandeepreddybagannagari/fleetman-api-gateway'
          }
       }
-      stage('code analysis') {
-         steps{
-            script {
-            withSonarQubeEnv('My SonarQube Server', envOnly: true) {
-             // This expands the evironment variables SONAR_CONFIG_NAME, SONAR_HOST_URL, SONAR_AUTH_TOKEN that can be used by any script.
-            println ${env.SONAR_HOST_URL} 
+     stage('Static Code Analysis') {
+            steps {
+                script {
+                    withSonarQubeEnv(credentialsId: 'SonarQube') {
+                        sh 'mvn sonar:sonar'
+                    }
+                    timeout(time:1, unit: 'HOURS') {
+                        def qg = waitForQualityGate()
+                        if(qg.status != 'OK') {
+                            error "Pipeline aborted due to quality gate failure: ${qg.status}"
+                        }
+                    }
+                }
             }
-           }
-         }
-      }
+        }
       stage('Build') {
          steps {
             sh '''mvn clean package'''

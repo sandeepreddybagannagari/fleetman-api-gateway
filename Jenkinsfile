@@ -17,7 +17,7 @@ pipeline {
             git 'https://github.com/sandeepreddybagannagari/fleetman-api-gateway'
          }
       }
-     stage('Static Code Analysis') {
+      stage('Static Code Analysis') {
             steps {
                 script {
                     withSonarQubeEnv(credentialsId: 'SonarQube') {
@@ -26,16 +26,20 @@ pipeline {
                 }
             }
          }
-     stage("Quality Gate"){
-        timeout(time: 1, unit: 'HOURS') { 
-        def qg = waitForQualityGate() 
-        if (qg.status != 'OK') {
-          error "Pipeline aborted due to quality gate failure: ${qg.status}"
-    }
-  }
-}
+      stage('Quality Gate'){
+          steps {
+                script {
+                   timeout(time: 1, unit: 'HOURS') { 
+                   def qg = waitForQualityGate() 
+                   if (qg.status != 'OK') {
+                   error "Pipeline aborted due to quality gate failure: ${qg.status}"
+                     }
+                    }
+                  }
+                }
+              }
                 
-     stage('Build') {
+      stage('Build') {
          steps {
             sh '''mvn clean package'''
          }
